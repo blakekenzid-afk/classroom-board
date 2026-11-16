@@ -496,3 +496,5 @@ body.dark-bg .wg.frameless .st img { filter: drop-shadow(0 6px 12px rgba(0, 0, 0
 .ws-pick img { width: 44px; height: 44px; }
 .ws-pick.on { border-color: var(--wc); background: color-mix(in srgb, var(--wc) 12%, #fff); color: var(--ink); }
 img { -webkit-touch-callout: none; -webkit-user-drag: none; }
+.tt-time .t0, .tt-time .t1 { min-width: 2.75em; }
+.tt-time .t1 { text-align: right; }
