@@ -1,9 +1,9 @@
 // Board ("screen") rendering: free-floating widget frames with drag,
 // resize, z-order, close and settings. Frames are stored as FRACTIONS of
 // the stage, rendered as CSS percentages, so a board scales to any screen.
-import * as S from './store.js?v=3';
-import { h, $, $$, clamp, icon, ico, picSrc, toast } from './util.js?v=3';
-import { REGISTRY } from './widgets/index.js?v=3';
+import * as S from './store.js?v=4';
+import { h, $, $$, clamp, icon, ico, picSrc, toast } from './util.js?v=4';
+import { REGISTRY } from './widgets/index.js?v=4';
 
 let stage, live = new Map(); // widgetId -> {frame, inst, def}
 let sheet = null, sheetFor = null;

@@ -1,9 +1,10 @@
-import * as S from './store.js?v=3';
-import { h, $, $$, icon, ico, picSrc, toast, confirmDialog, pickFile, resizeImage, swatches } from './util.js?v=3';
-import { initBoard, renderBoard, syncBoard, addWidget, closeSettings, liveWidgets } from './board.js?v=3';
-import { REGISTRY, DOCK } from './widgets/index.js?v=3';
-import { pickPicture } from './picker.js?v=3';
-import { uid } from './store.js?v=3';
+import * as S from './store.js?v=4';
+import { h, $, $$, icon, ico, picSrc, toast, confirmDialog, pickFile, resizeImage, swatches } from './util.js?v=4';
+import { initBoard, renderBoard, syncBoard, addWidget, closeSettings, liveWidgets, dropFile } from './board.js?v=4';
+import { initTeacher, setMode } from './teacher/teacher.js?v=4';
+import { REGISTRY, DOCK } from './widgets/index.js?v=4';
+import { pickPicture } from './picker.js?v=4';
+import { uid } from './store.js?v=4';
 
 // ── backgrounds ──
 export const BGS = {
@@ -59,7 +60,11 @@ function buildChrome() {
 
   // Top-left: screens
   const nameBtn = h('button.scr-btn', { type: 'button', 'data-act': 'screens', 'aria-haspopup': 'menu' }, h('span.scr-name'), icon('chevron', 'chev'));
-  const tl = h('div.chrome.tl-pill', null, h('div.logo', { 'aria-hidden': 'true' }, h('img', { src: 'icons/sparkles.svg', alt: '' })), nameBtn);
+  // Board | Teacher switch
+  const modeBtn = (m, label, pic) => h('button.mode-b' + (m === 'board' ? '.on' : ''), { type: 'button', 'data-mode': m, 'data-act': 'mode-' + m, 'aria-pressed': String(m === 'board'), title: m === 'board' ? 'Classroom board' : 'Teacher planner, lessons and library',
+    onclick: () => { if (m === 'teacher') closeSettings(true); setMode(m); } }, h('img', { src: picSrc(pic), alt: '', draggable: 'false' }), h('span', { text: label }));
+  const modeSeg = h('div.mode-seg', { role: 'group', 'aria-label': 'Board or Teacher' }, modeBtn('board', 'Board', 'school'), modeBtn('teacher', 'Teacher', 'teacher'));
+  const tl = h('div.chrome.tl-pill', null, h('div.logo', { 'aria-hidden': 'true' }, h('img', { src: 'icons/sparkles.svg', alt: '' })), modeSeg, nameBtn);
   nameBtn.onclick = e => { e.stopPropagation(); toggleMenu(screensMenu, nameBtn); };
 
   // Top-right
@@ -233,6 +238,7 @@ setInterval(syncHist, 400); // debounced saves become undo steps a moment later
 // Ctrl/Cmd+Z undo, Shift+Ctrl/Cmd+Z or Ctrl+Y redo (typing fields keep their own undo)
 window.addEventListener('keydown', e => {
   if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+  if (document.body.classList.contains('teacher-mode')) return; // board undo only on the board
   const k = e.key.toLowerCase(); if (k !== 'z' && k !== 'y') return;
   const t = e.target; if (t && t.closest && t.closest('input, textarea, select, [contenteditable="true"]')) return;
   if (document.querySelector('.modal-back')) return;
@@ -246,4 +252,5 @@ setTimeout(() => S.blobs.gc(), 4000);
 window.addEventListener('cb:save-error', () => toast('Storage is full – try a smaller picture.', 'err'));
 // Class list is shared: refresh every widget that shows it.
 S.onChange(r => { if (r === 'classlist') liveWidgets().forEach(l => l.inst.onClassList && l.inst.onClassList()); });
+initTeacher({ addWidget, dropFile });
 window.CB = { S, addWidget, renderBoard };

@@ -3,7 +3,7 @@
 // the surface (y uses the same unit), so a drawing scales cleanly when the
 // widget is resized and PDF notes stay on the page at any zoom.
 // Works with mouse, finger and Apple Pencil (pointer events, pressure for pens).
-import { h, $$, confirmDialog } from './util.js?v=3';
+import { h, $$, confirmDialog } from './util.js?v=4';
 
 export const INK = [
   ['#23233F', 'Black'], ['#E2483D', 'Red'], ['#F08A24', 'Orange'], ['#F5C400', 'Yellow'], ['#2FA55A', 'Green'],

@@ -1,7 +1,7 @@
 // Pictogram picker: big colorful built-in pictures + "upload my own".
-import { ICONS } from './icon-list.js?v=3';
-import * as S from './store.js?v=3';
-import { h, $$, picSrc, pickFile, resizeImage, toast, icon, ico } from './util.js?v=3';
+import { ICONS } from './icon-list.js?v=4';
+import * as S from './store.js?v=4';
+import { h, $$, picSrc, pickFile, resizeImage, toast, icon, ico } from './util.js?v=4';
 
 const CATS = [['all', 'All'], ['mine', 'My pictures'], ['routine', 'Routines'], ['school', 'Learning'], ['play', 'Play'], ['people', 'People'], ['feelings', 'Feelings'], ['nature', 'Nature'], ['shapes', 'Shapes & colors'], ['fun', 'Fun']];
 

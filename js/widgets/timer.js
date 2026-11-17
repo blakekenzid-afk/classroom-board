@@ -1,7 +1,7 @@
 // Timer (big digits) and Visual timer (shrinking disc). Shared engine:
 // running state is stored as an absolute endAt, so a reload keeps counting.
-import { h, $, $$, icon, ico, pad, segmented, swatches, section, field, toggle, clamp } from '../util.js?v=3';
-import { SOUNDS, playSound } from '../audio.js?v=3';
+import { h, $, $$, icon, ico, pad, segmented, swatches, section, field, toggle, clamp } from '../util.js?v=4';
+import { SOUNDS, playSound } from '../audio.js?v=4';
 
 function engine(ctx, onUpdate) {
   const d = ctx.data;

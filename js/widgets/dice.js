@@ -1,8 +1,8 @@
 // Dice: 1–6 big 3D dice with dot, number or picture faces (colors,
 // shapes, animals, feelings, moves), a rattle sound and the total.
-import { h, $, $$, pic, icon, ico, segmented, swatches, toggle, section, clamp } from '../util.js?v=3';
-import { pickPicture } from '../picker.js?v=3';
-import { playSound } from '../audio.js?v=3';
+import { h, $, $$, pic, icon, ico, segmented, swatches, toggle, section, clamp } from '../util.js?v=4';
+import { pickPicture } from '../picker.js?v=4';
+import { playSound } from '../audio.js?v=4';
 
 const PIPS = { 1: [5], 2: [3, 7], 3: [3, 5, 7], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
 // cube rotation (x, y) that brings face n to the front

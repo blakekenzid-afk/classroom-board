@@ -10,22 +10,26 @@ const SCHEMA = 1;
 
 export const uid = (p = 'id') => p + '_' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
 
-/** Default adapter: browser localStorage. */
-export const LocalAdapter = {
-  name: 'local',
-  load() {
-    try { const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; }
-    catch (e) { console.warn('load failed', e); return null; }
-  },
-  save(json) {
-    try { localStorage.setItem(KEY, JSON.stringify(json)); return true; }
-    catch (e) {
-      // Quota exceeded is the realistic failure (big uploaded pictures).
-      window.dispatchEvent(new CustomEvent('cb:save-error', { detail: e }));
-      return false;
+/** A localStorage adapter for one key (boards use KEY, the teacher side its own key). */
+export function makeLocalAdapter(key) {
+  return {
+    name: 'local',
+    load() {
+      try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; }
+      catch (e) { console.warn('load failed', e); return null; }
+    },
+    save(json) {
+      try { localStorage.setItem(key, JSON.stringify(json)); return true; }
+      catch (e) {
+        // Quota exceeded is the realistic failure (big uploaded pictures).
+        window.dispatchEvent(new CustomEvent('cb:save-error', { detail: e }));
+        return false;
+      }
     }
-  }
-};
+  };
+}
+/** Default adapter: browser localStorage. */
+export const LocalAdapter = makeLocalAdapter(KEY);
 
 let adapter = LocalAdapter;
 let state = null;
@@ -254,7 +258,10 @@ export const blobs = {
   async gc() {
     try {
       const ids = new Set(state.boards.flatMap(b => b.widgets.map(w => w.id)));
-      for (const k of await blobs.keys()) { const id = String(k).split(':')[0]; if (!ids.has(id)) await blobs.del(k); }
+      for (const k of await blobs.keys()) {
+        if (String(k).startsWith('teacher/')) continue; // teacher library files are not widget blobs
+        const id = String(k).split(':')[0]; if (!ids.has(id)) await blobs.del(k);
+      }
     } catch (e) { console.warn('blob gc skipped', e); }
   }
 };

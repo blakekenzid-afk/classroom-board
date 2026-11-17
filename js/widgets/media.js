@@ -1,5 +1,5 @@
 // Website (embed) and YouTube widgets.
-import { h, $, $$, icon, ico, section, field, toggle, toast } from '../util.js?v=3';
+import { h, $, $$, icon, ico, section, field, toggle, toast } from '../util.js?v=4';
 
 // ───────── shared helpers ─────────
 const SVG = {

@@ -1,6 +1,6 @@
 // Clock, Text, Image, Traffic light, Work symbols, Sticker.
-import { h, $, $$, pad, pic, picSrc, icon, ico, segmented, swatches, toggle, section, field, pickFile, resizeImage, toast } from '../util.js?v=3';
-import { pickPicture } from '../picker.js?v=3';
+import { h, $, $$, pad, pic, picSrc, icon, ico, segmented, swatches, toggle, section, field, pickFile, resizeImage, toast } from '../util.js?v=4';
+import { pickPicture } from '../picker.js?v=4';
 
 // ───────── Clock ─────────
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
