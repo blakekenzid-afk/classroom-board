@@ -1,11 +1,11 @@
 // Today: the day at a glance – schedule blocks (with what is on now),
 // today's lessons, to-dos, reminders and attendance.
-import { h, $, $$, toast } from '../util.js?v=5';
-import * as TS from './tstore.js?v=5';
-import { sv, fl, empty, fmtLong, fmtRange, fmtT, fmtShort, fmtDow, tint } from './ui.js?v=5';
-import { offIcon } from './planner.js?v=5';
-import { resIcon, openResource } from './library.js?v=5';
-import { todoRow, reminderRow, nextHour } from './tasks.js?v=5';
+import { h, $, $$, toast } from '../util.js?v=6';
+import * as TS from './tstore.js?v=6';
+import { sv, fl, empty, fmtLong, fmtRange, fmtT, fmtShort, fmtDow, tint } from './ui.js?v=6';
+import { offIcon } from './planner.js?v=6';
+import { resIcon, openResource } from './library.js?v=6';
+import { todoRow, reminderRow, nextHour } from './tasks.js?v=6';
 
 const mins = s => { const [H, M] = s.split(':').map(Number); return H * 60 + M; };
 

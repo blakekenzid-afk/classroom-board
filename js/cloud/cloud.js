@@ -8,11 +8,11 @@
 // (classboard.v1@<cid>, classboard.teacher.v1@<cid>) so it opens instantly and
 // works offline, and RecordSync keeps those in step with Firestore.
 // ─────────────────────────────────────────────────────────────
-import { activeConfig } from './config.js?v=5';
-import { RecordSync } from './sync.js?v=5';
-import { makeCloudBlobs } from './files.js?v=5';
-import * as S from '../store.js?v=5';
-import * as TS from '../teacher/tstore.js?v=5';
+import { activeConfig } from './config.js?v=6';
+import { RecordSync } from './sync.js?v=6';
+import { makeCloudBlobs } from './files.js?v=6';
+import * as S from '../store.js?v=6';
+import * as TS from '../teacher/tstore.js?v=6';
 
 const MEM = 'classboard.cloud';
 export const bKey = cid => 'classboard.v1@' + cid;

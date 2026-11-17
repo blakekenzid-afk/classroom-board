@@ -1,9 +1,9 @@
 // Students: class roster by INITIALS ONLY, daily attendance
 // (present / absent / tardy) and an attendance history grid.
-import { h, $, $$, toast, confirmDialog, ico } from '../util.js?v=5';
-import * as S from '../store.js?v=5';
-import * as TS from './tstore.js?v=5';
-import { sv, fl, empty, modal, tint, fmtLong, fmtShort, fmtDow } from './ui.js?v=5';
+import { h, $, $$, toast, confirmDialog, ico } from '../util.js?v=6';
+import * as S from '../store.js?v=6';
+import * as TS from './tstore.js?v=6';
+import { sv, fl, empty, modal, tint, fmtLong, fmtShort, fmtDow } from './ui.js?v=6';
 
 // ─────────────────────────────────────────────────────────────
 // PROFILE SEAM. Student records already carry `profile: {}` (synced and

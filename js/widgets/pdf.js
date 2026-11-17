@@ -2,10 +2,10 @@
 // notes on top of each page. pdf.js loads from jsDelivr (pinned) only when a
 // PDF widget is used. The file lives in IndexedDB ("<id>:pdf"), notes per page
 // ("<id>:ann:<page>"), so big files never hit the localStorage limit.
-import { h, $, $$, icon, ico, section, toast, pickFile, confirmDialog } from '../util.js?v=5';
-import { blobs, env } from '../store.js?v=5';
-import { CLOUD_FILE_MAX } from '../cloud/config.js?v=5';
-import { createSketch, sketchToolbar, SKETCH_SVG } from '../sketch.js?v=5';
+import { h, $, $$, icon, ico, section, toast, pickFile, confirmDialog } from '../util.js?v=6';
+import { blobs, env } from '../store.js?v=6';
+import { CLOUD_FILE_MAX } from '../cloud/config.js?v=6';
+import { createSketch, sketchToolbar, SKETCH_SVG } from '../sketch.js?v=6';
 
 const PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/';
 const BIG = 25 * 1024 * 1024, MAX = 250 * 1024 * 1024;

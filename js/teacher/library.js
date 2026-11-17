@@ -1,12 +1,12 @@
 // Resource library: links, videos and uploaded files (PDF / pictures, kept in
 // IndexedDB), with folders, labels and search. A PDF opens in the board's PDF
 // widget, a picture in an Image widget, a YouTube link in the YouTube widget.
-import { h, $$, toast, confirmDialog, pickFile, resizeImage, ico } from '../util.js?v=5';
-import { blobs, env, IDBBlobAdapter } from '../store.js?v=5';
-import { CLOUD_FILE_MAX } from '../cloud/config.js?v=5';
-import { ytId } from '../widgets/media.js?v=5';
-import * as TS from './tstore.js?v=5';
-import { sv, fl, empty, modal, popMenu, tagInput, fmtShort } from './ui.js?v=5';
+import { h, $$, toast, confirmDialog, pickFile, resizeImage, ico } from '../util.js?v=6';
+import { blobs, env, IDBBlobAdapter } from '../store.js?v=6';
+import { CLOUD_FILE_MAX } from '../cloud/config.js?v=6';
+import { ytId } from '../widgets/media.js?v=6';
+import * as TS from './tstore.js?v=6';
+import { sv, fl, empty, modal, popMenu, tagInput, fmtShort } from './ui.js?v=6';
 
 const mb = n => n >= 1048576 ? (n / 1048576).toFixed(n >= 10485760 ? 0 : 1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
 export const isPdfRes = r => r.kind === 'file' && r.file && /pdf/i.test(r.file.mime || r.file.name);

@@ -6,8 +6,8 @@
 // file the first time it is opened, then keep it in IndexedDB.
 // Files over CLOUD_FILE_MAX stay on the device that added them.
 // ─────────────────────────────────────────────────────────────
-import { hashBytes, hashStr, splitStr, docId } from './sync.js?v=5';
-import { CLOUD_FILE_MAX } from './config.js?v=5';
+import { hashBytes, hashStr, splitStr, docId } from './sync.js?v=6';
+import { CLOUD_FILE_MAX } from './config.js?v=6';
 
 const BIN_PART = 750000;
 const isBin = v => v instanceof ArrayBuffer || ArrayBuffer.isView(v);

@@ -1,12 +1,12 @@
 // Weekly planner: the repeating weekly schedule (blocks per weekday) with
 // lessons dropped into blocks. Week navigation, snow / no-school days with a
 // "bump everything forward one school day", and drag lessons from the tray.
-import { h, $, $$, toast, confirmDialog } from '../util.js?v=5';
-import * as S from '../store.js?v=5';
-import { pickPicture } from '../picker.js?v=5';
-import * as TS from './tstore.js?v=5';
-import { sv, fl, empty, modal, popMenu, tint, dragSource, fmtShort, fmtLong, fmtRange, fmtDow, MONTHS } from './ui.js?v=5';
-import { pickSlot } from './lessons.js?v=5';
+import { h, $, $$, toast, confirmDialog } from '../util.js?v=6';
+import * as S from '../store.js?v=6';
+import { pickPicture } from '../picker.js?v=6';
+import * as TS from './tstore.js?v=6';
+import { sv, fl, empty, modal, popMenu, tint, dragSource, fmtShort, fmtLong, fmtRange, fmtDow, MONTHS } from './ui.js?v=6';
+import { pickSlot } from './lessons.js?v=6';
 
 const shortRange = (a, b) => [a, b].map(t => { const [H, M] = t.split(':').map(Number); return (H % 12 || 12) + ':' + String(M).padStart(2, '0'); }).join('–');
 const OFF_REASONS = [['Snow day', 'snowflake'], ['No school', 'house'], ['Holiday', 'party'], ['Teacher work day', 'teacher']];

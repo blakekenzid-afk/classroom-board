@@ -12,7 +12,7 @@
 // collection, e.g. users/{uid}/teacher/lessons/{lessonId}.
 // Keyed maps (daysOff, attendance) map to one doc per date.
 // ─────────────────────────────────────────────────────────────
-import { uid, blobs, makeLocalAdapter } from '../store.js?v=5';
+import { uid, blobs, makeLocalAdapter } from '../store.js?v=6';
 
 export const TKEY = 'classboard.teacher.v1';
 export const TSCHEMA = 1;

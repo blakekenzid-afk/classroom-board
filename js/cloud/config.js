@@ -1,8 +1,14 @@
 // Firebase web config for the shared classroom (free Spark plan).
 // These values are PUBLIC by design (they only name the project);
 // what protects the data is firestore.rules + sign-in.
-// null = cloud features hidden; the board works on this device only.
-export const FIREBASE_CONFIG = null;
+export const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyD6JZ3g55lnyypl7MkyfIYu8gXJEUTITpo',
+  authDomain: 'classroom-board-4e306.firebaseapp.com',
+  projectId: 'classroom-board-4e306',
+  storageBucket: 'classroom-board-4e306.firebasestorage.app',
+  messagingSenderId: '1035995375929',
+  appId: '1:1035995375929:web:b56798e4a7cfeedff220e8'
+};
 
 // Automated tests only: on localhost, `localStorage['classboard.emulator'] = '1'`
 // points the app at the local Firebase emulators with a demo project.

@@ -1,9 +1,9 @@
 // Drawing pad: pen, highlighter, eraser, colors, sizes, its own undo/redo,
 // and practice papers (lined, grid, handwriting lines, chalkboard).
 // The ink is saved per widget in IndexedDB (key "<widgetId>:draw").
-import { h, $, $$, section } from '../util.js?v=5';
-import { blobs } from '../store.js?v=5';
-import { createSketch, sketchToolbar, SKETCH_SVG } from '../sketch.js?v=5';
+import { h, $, $$, section } from '../util.js?v=6';
+import { blobs } from '../store.js?v=6';
+import { createSketch, sketchToolbar, SKETCH_SVG } from '../sketch.js?v=6';
 
 export const PAPERS = [['blank', 'Blank'], ['lined', 'Lined'], ['grid', 'Grid'], ['hand', 'Handwriting'], ['chalk', 'Chalkboard']];
 

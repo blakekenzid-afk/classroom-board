@@ -1,7 +1,7 @@
 // Sound level meter, Name picker and Group maker (class list = INITIALS ONLY).
-import { h, $, $$, icon, ico, segmented, swatches, toggle, section, field, clamp, toast } from '../util.js?v=5';
-import * as S from '../store.js?v=5';
-import { SOUNDS, playSound, audio } from '../audio.js?v=5';
+import { h, $, $$, icon, ico, segmented, swatches, toggle, section, field, clamp, toast } from '../util.js?v=6';
+import * as S from '../store.js?v=6';
+import { SOUNDS, playSound, audio } from '../audio.js?v=6';
 
 // ───────── Sound level ─────────
 export const sound = {

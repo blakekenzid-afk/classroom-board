@@ -1,12 +1,12 @@
-import * as S from './store.js?v=5';
-import { h, $, $$, icon, ico, picSrc, toast, confirmDialog, pickFile, resizeImage, swatches } from './util.js?v=5';
-import { initBoard, renderBoard, syncBoard, syncRemote, addWidget, closeSettings, liveWidgets, dropFile } from './board.js?v=5';
-import { initTeacher, setMode } from './teacher/teacher.js?v=5';
-import { REGISTRY, DOCK } from './widgets/index.js?v=5';
-import { pickPicture } from './picker.js?v=5';
-import { uid } from './store.js?v=5';
-import * as C from './cloud/cloud.js?v=5';
-import { loadingUI, accountButton, maybeOpenSignIn } from './cloud/ui.js?v=5';
+import * as S from './store.js?v=6';
+import { h, $, $$, icon, ico, picSrc, toast, confirmDialog, pickFile, resizeImage, swatches } from './util.js?v=6';
+import { initBoard, renderBoard, syncBoard, syncRemote, addWidget, closeSettings, liveWidgets, dropFile } from './board.js?v=6';
+import { initTeacher, setMode } from './teacher/teacher.js?v=6';
+import { REGISTRY, DOCK } from './widgets/index.js?v=6';
+import { pickPicture } from './picker.js?v=6';
+import { uid } from './store.js?v=6';
+import * as C from './cloud/cloud.js?v=6';
+import { loadingUI, accountButton, maybeOpenSignIn } from './cloud/ui.js?v=6';
 
 // ── backgrounds ──
 export const BGS = {

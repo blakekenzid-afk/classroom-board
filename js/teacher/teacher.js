@@ -1,17 +1,17 @@
 // Teacher side: a separate full-screen view reached from the Board | Teacher
 // switch in the top bar. Pages: Today, Planner, Lessons, Library, To-dos,
 // Students. The board keeps running underneath (timers keep ticking).
-import { h, $, $$, toast, confirmDialog, pickFile, picSrc } from '../util.js?v=5';
-import { playSound } from '../audio.js?v=5';
-import * as TS from './tstore.js?v=5';
-import { activeBoard } from '../store.js?v=5';
-import { sv, fl, download, fmtT, fmtShort, closePop } from './ui.js?v=5';
-import { renderToday } from './today.js?v=5';
-import { renderPlanner } from './planner.js?v=5';
-import { renderLessons } from './lessons.js?v=5';
-import { renderLibrary } from './library.js?v=5';
-import { renderTasks } from './tasks.js?v=5';
-import { renderStudents } from './students.js?v=5';
+import { h, $, $$, toast, confirmDialog, pickFile, picSrc } from '../util.js?v=6';
+import { playSound } from '../audio.js?v=6';
+import * as TS from './tstore.js?v=6';
+import { activeBoard } from '../store.js?v=6';
+import { sv, fl, download, fmtT, fmtShort, closePop } from './ui.js?v=6';
+import { renderToday } from './today.js?v=6';
+import { renderPlanner } from './planner.js?v=6';
+import { renderLessons } from './lessons.js?v=6';
+import { renderLibrary } from './library.js?v=6';
+import { renderTasks } from './tasks.js?v=6';
+import { renderStudents } from './students.js?v=6';
 
 export const TABS = [
   ['today', 'Today', 'calendar-day', renderToday],
