@@ -1,9 +1,9 @@
-import * as S from './store.js';
-import { h, $, $$, icon, ico, picSrc, toast, confirmDialog, pickFile, resizeImage, swatches } from './util.js';
-import { initBoard, renderBoard, addWidget, closeSettings, liveWidgets } from './board.js';
-import { REGISTRY, DOCK } from './widgets/index.js';
-import { pickPicture } from './picker.js';
-import { uid } from './store.js';
+import * as S from './store.js?v=3';
+import { h, $, $$, icon, ico, picSrc, toast, confirmDialog, pickFile, resizeImage, swatches } from './util.js?v=3';
+import { initBoard, renderBoard, syncBoard, addWidget, closeSettings, liveWidgets } from './board.js?v=3';
+import { REGISTRY, DOCK } from './widgets/index.js?v=3';
+import { pickPicture } from './picker.js?v=3';
+import { uid } from './store.js?v=3';
 
 // ── backgrounds ──
 export const BGS = {
@@ -65,36 +65,71 @@ function buildChrome() {
   // Top-right
   const bgBtn = h('button.chrome-btn', { type: 'button', title: 'Background', 'data-act': 'bg' }, icon('bg'), h('span.lbl', { text: 'Background' }));
   const fsBtn = h('button.chrome-btn', { type: 'button', title: 'Present (full screen)', 'data-act': 'present' }, icon('expand'), h('span.lbl', { text: 'Present' }));
-  const tr = h('div.chrome.tr-pill', null, bgBtn, fsBtn);
+  const undoBtn = h('button.chrome-btn.hist', { type: 'button', title: 'Undo (Ctrl+Z)', 'aria-label': 'Undo', 'data-act': 'undo', html: UNDO_SVG, disabled: true, onclick: () => { S.undo(); } });
+  const redoBtn = h('button.chrome-btn.hist', { type: 'button', title: 'Redo (Ctrl+Shift+Z)', 'aria-label': 'Redo', 'data-act': 'redo', html: REDO_SVG, disabled: true, onclick: () => { S.redo(); } });
+  const tr = h('div.chrome.tr-pill', null, undoBtn, redoBtn, h('span.chrome-sep'), bgBtn, fsBtn);
   bgBtn.onclick = e => { e.stopPropagation(); toggleMenu(bgMenu, bgBtn); };
   fsBtn.onclick = togglePresent;
 
   // Dock
   const dock = h('nav.dock', { 'aria-label': 'Widgets' });
   const dockInner = h('div.dock-inner');
-  DOCK.forEach(t => {
+  const items = DOCK.map(t => {
     const def = t === 'stickers' ? { label: 'Stickers', icon: 'glowing-star' } : REGISTRY[t];
     const b = h('button.dock-item', { type: 'button', 'data-add': t, title: 'Add ' + def.label },
       h('span.dk-ico', null, h('img', { src: picSrc(def.icon), alt: '', draggable: 'false' })), h('span.dk-lbl', { text: def.label }));
     b.onclick = async () => {
+      moreMenu.classList.remove('open'); moreBtn.classList.remove('on');
       if (t === 'stickers') { const v = await pickPicture({ title: 'Choose a sticker', allowNone: false }); if (v) addWidget('sticker', { pic: v }); return; }
       addWidget(t);
     };
-    dockInner.append(b);
+    return b;
   });
+  // "More" drawer: widgets that do not fit in one row (iPad portrait) live here.
+  const moreBtn = h('button.dock-item.dock-more', { type: 'button', 'data-act': 'dock-more', title: 'More widgets', 'aria-haspopup': 'menu', 'aria-expanded': 'false' },
+    h('span.dk-ico.dk-dots', { 'aria-hidden': 'true' }, h('i'), h('i'), h('i'), h('i')), h('span.dk-lbl', { text: 'More' }));
+  const moreGrid = h('div.more-grid');
+  const moreMenu = h('div.menu.more-menu', { role: 'menu', 'aria-label': 'More widgets' }, h('div.menu-h', { text: 'More widgets' }), moreGrid);
+  moreBtn.onclick = e => { e.stopPropagation(); const open = !moreMenu.classList.contains('open'); [screensMenu, bgMenu].forEach(m => m.classList.remove('open')); if (open) placeMore(); moreMenu.classList.toggle('open', open); moreBtn.classList.toggle('on', open); moreBtn.setAttribute('aria-expanded', String(open)); };
+  dockInner.append(...items, moreBtn);
   dock.append(dockInner);
+  function layoutDock() {
+    items.forEach(b => dockInner.insertBefore(b, moreBtn));
+    moreBtn.hidden = true;
+    const avail = innerWidth - 24 - 14;
+    const ws = items.map(b => b.getBoundingClientRect().width + 2);
+    if (!ws[0]) return;
+    if (ws.reduce((a, b) => a + b, 0) <= avail) { closeMore(); return; }
+    moreBtn.hidden = false;
+    let used = moreBtn.getBoundingClientRect().width + 2, fit = 0;
+    while (fit < items.length && used + ws[fit] <= avail) used += ws[fit++];
+    items.slice(Math.max(4, fit)).forEach(b => moreGrid.append(b));
+  }
+  function placeMore() {
+    const r = moreBtn.getBoundingClientRect(), mw = Math.min(360, innerWidth - 20);
+    moreMenu.style.width = mw + 'px';
+    moreMenu.style.left = Math.max(10, Math.min(innerWidth - mw - 10, r.left + r.width / 2 - mw / 2)) + 'px';
+    moreMenu.style.bottom = (innerHeight - r.top + 14) + 'px'; moreMenu.style.top = 'auto';
+  }
   const peek = h('button.peek', { type: 'button', title: 'Show tools', 'aria-label': 'Show tools', 'data-act': 'exit-present', html: ico.shrink, onclick: togglePresent });
 
   app.append(bgLayer, stage, tl, tr, dock, peek);
   const screensMenu = h('div.menu.screens-menu', { role: 'menu' });
   const bgMenu = h('div.menu.bg-menu', { role: 'dialog', 'aria-label': 'Background' });
-  document.body.append(screensMenu, bgMenu);
-  document.addEventListener('pointerdown', e => { [screensMenu, bgMenu].forEach(m => { if (m.classList.contains('open') && !m.contains(e.target) && !e.target.closest('[data-act="screens"],[data-act="bg"]')) m.classList.remove('open'); }); });
-  window.addEventListener('keydown', e => { if (e.key === 'Escape') [screensMenu, bgMenu].forEach(m => m.classList.remove('open')); });
+  document.body.append(screensMenu, bgMenu, moreMenu);
+  const closeMore = () => { moreMenu.classList.remove('open'); moreBtn.classList.remove('on'); moreBtn.setAttribute('aria-expanded', 'false'); };
+  document.addEventListener('pointerdown', e => {
+    [screensMenu, bgMenu].forEach(m => { if (m.classList.contains('open') && !m.contains(e.target) && !e.target.closest('[data-act="screens"],[data-act="bg"]')) m.classList.remove('open'); });
+    if (moreMenu.classList.contains('open') && !moreMenu.contains(e.target) && !e.target.closest('[data-act="dock-more"]')) closeMore();
+  });
+  window.addEventListener('keydown', e => { if (e.key === 'Escape') { [screensMenu, bgMenu].forEach(m => m.classList.remove('open')); closeMore(); } });
+  window.addEventListener('resize', () => { closeMore(); layoutDock(); });
+  requestAnimationFrame(layoutDock);
+  document.fonts && document.fonts.ready.then(layoutDock);
 
   function toggleMenu(menu, anchor) {
     const open = !menu.classList.contains('open');
-    [screensMenu, bgMenu].forEach(m => m.classList.remove('open'));
+    [screensMenu, bgMenu].forEach(m => m.classList.remove('open')); closeMore();
     if (!open) return;
     if (menu === screensMenu) drawScreens(); else drawBg();
     const r = anchor.getBoundingClientRect();
@@ -151,7 +186,7 @@ function buildChrome() {
     bgMenu.append(up);
   }
 
-  return { stage, bgLayer };
+  return { stage, bgLayer, layoutDock, undoBtn, redoBtn };
 }
 
 function applyBg() {
@@ -178,12 +213,36 @@ function togglePresent() {
 }
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) document.body.classList.remove('present'); });
 
+const UNDO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>';
+const REDO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>';
+
 // ── boot ──
 S.load(seed);
-const { stage } = buildChrome();
+const { stage, undoBtn, redoBtn } = buildChrome();
 initBoard(stage);
 applyBg(); renderBoard();
-S.onChange(reason => { if (reason === 'board') { applyBg(); renderBoard(); } else if (reason === 'bg' || reason === 'rename') applyBg(); else if (reason === 'classlist') { /* widgets read it live */ } });
+const syncHist = () => { undoBtn.disabled = !S.canUndo(); redoBtn.disabled = !S.canRedo(); };
+S.onChange(reason => {
+  if (reason === 'board') { applyBg(); renderBoard(); }
+  else if (reason === 'bg' || reason === 'rename') applyBg();
+  else if (reason === 'history-apply') { applyBg(); syncBoard(); }
+  if (reason === 'history' || reason === 'board') syncHist();
+});
+syncHist();
+setInterval(syncHist, 400); // debounced saves become undo steps a moment later
+// Ctrl/Cmd+Z undo, Shift+Ctrl/Cmd+Z or Ctrl+Y redo (typing fields keep their own undo)
+window.addEventListener('keydown', e => {
+  if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+  const k = e.key.toLowerCase(); if (k !== 'z' && k !== 'y') return;
+  const t = e.target; if (t && t.closest && t.closest('input, textarea, select, [contenteditable="true"]')) return;
+  if (document.querySelector('.modal-back')) return;
+  e.preventDefault();
+  if (k === 'y' || e.shiftKey) S.redo(); else S.undo();
+});
+// a file dropped outside the board must never replace the page
+['dragover', 'drop'].forEach(ev => window.addEventListener(ev, e => { if (e.dataTransfer && [...(e.dataTransfer.types || [])].includes('Files')) e.preventDefault(); }));
+window.addEventListener('cb:blob-fallback', () => toast('This browser is not letting the board save big files, so PDFs and drawings last until you close it.', 'err'));
+setTimeout(() => S.blobs.gc(), 4000);
 window.addEventListener('cb:save-error', () => toast('Storage is full – try a smaller picture.', 'err'));
 // Class list is shared: refresh every widget that shows it.
 S.onChange(r => { if (r === 'classlist') liveWidgets().forEach(l => l.inst.onClassList && l.inst.onClassList()); });

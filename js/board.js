@@ -1,9 +1,9 @@
 // Board ("screen") rendering: free-floating widget frames with drag,
 // resize, z-order, close and settings. Frames are stored as FRACTIONS of
 // the stage, rendered as CSS percentages, so a board scales to any screen.
-import * as S from './store.js';
-import { h, $, $$, clamp, icon, ico, picSrc } from './util.js';
-import { REGISTRY } from './widgets/index.js';
+import * as S from './store.js?v=3';
+import { h, $, $$, clamp, icon, ico, picSrc, toast } from './util.js?v=3';
+import { REGISTRY } from './widgets/index.js?v=3';
 
 let stage, live = new Map(); // widgetId -> {frame, inst, def}
 let sheet = null, sheetFor = null;
@@ -16,6 +16,29 @@ export function initBoard(stageEl) {
   setInterval(tick, 250);
   new ResizeObserver(() => live.forEach(l => l.inst.resize && l.inst.resize())).observe(stage);
   window.addEventListener('keydown', e => { if (e.key === 'Escape') closeSettings(); });
+  S.setTransient(Object.fromEntries(Object.values(REGISTRY).map(d => [d.type, d.transient || []])));
+  // Drop a PDF or a picture anywhere on the board to make a widget for it.
+  const isFileDrag = e => e.dataTransfer && [...(e.dataTransfer.types || [])].includes('Files');
+  stage.addEventListener('dragover', e => { if (!isFileDrag(e)) return; e.preventDefault(); if (e.target === stage) stage.classList.add('drop'); });
+  stage.addEventListener('dragleave', e => { if (e.target === stage) stage.classList.remove('drop'); });
+  stage.addEventListener('drop', e => {
+    stage.classList.remove('drop');
+    if (!isFileDrag(e) || e.defaultPrevented) return; e.preventDefault();
+    const f = e.dataTransfer.files[0]; if (f) dropFile(f);
+  });
+  window.addEventListener('cb:drop-file', e => dropFile(e.detail.file, e.detail.replace));
+}
+
+export const isPdf = f => !!f && (f.type === 'application/pdf' || /\.pdf$/i.test(f.name || ''));
+/** Make a PDF or Image widget for a dropped file. `replace` = id of an empty widget to take the place of. */
+export function dropFile(file, replace) {
+  const type = isPdf(file) ? 'pdf' : /^image\//.test(file.type) ? 'image' : null;
+  if (!type) { toast('Drop a PDF or a picture here.', 'err'); return; }
+  let at = null;
+  if (replace) { const old = S.getWidget(replace); if (old) { at = { x: old.x, y: old.y, w: old.w, h: old.h }; closeWidget(replace, true); } }
+  const w = addWidget(type, null, at);
+  const l = live.get(w.id); l && l.inst.loadFile && l.inst.loadFile(file);
+  return w;
 }
 
 export function renderBoard() {
@@ -25,6 +48,31 @@ export function renderBoard() {
   $$('.wg', stage).forEach(n => n.remove());
   const b = S.activeBoard();
   b.widgets.forEach(w => mount(w));
+  S.rebase();
+}
+
+const dataSig = w => { const d = Object.assign({}, w.data); (REGISTRY[w.type] && REGISTRY[w.type].transient || []).forEach(k => delete d[k]); return w.type + JSON.stringify(d); };
+/**
+ * After undo/redo: bring the DOM in line with the screen's data without
+ * rebuilding widgets that did not change (a playing video keeps playing).
+ */
+export function syncBoard() {
+  closeSettings(true);
+  const b = S.activeBoard(); const ids = new Set(b.widgets.map(w => w.id));
+  live.forEach((l, id) => { if (!ids.has(id)) { l.inst.destroy && l.inst.destroy(); l.frame.remove(); live.delete(id); } });
+  b.widgets.forEach((w, i) => {
+    const l = live.get(w.id);
+    if (!l) { const f = mount(w); f.classList.add('entering'); setTimeout(() => f.classList.remove('entering'), 400); return; }
+    if (dataSig(l.ctx.w) === dataSig(w)) {
+      // keep the running instance: copy the restored frame onto the object it already uses
+      const keep = l.ctx.w; ['x', 'y', 'w', 'h', 'z'].forEach(k => keep[k] = w[k]); b.widgets[i] = keep;
+      applyFrame(l.frame, keep); l.inst.resize && l.inst.resize();
+    } else {
+      l.inst.destroy && l.inst.destroy(); const old = l.frame; live.delete(w.id);
+      const f = mount(w); old.replaceWith(f);
+    }
+  });
+  S.rebase();
 }
 
 function stageRect() { return stage.getBoundingClientRect(); }
@@ -127,17 +175,18 @@ function enableResize(frame, handle, w, def) {
   });
 }
 
-export function closeWidget(id) {
+export function closeWidget(id, quiet) {
   const l = live.get(id); if (!l) return;
   if (sheetFor === id) closeSettings();
   l.inst.destroy && l.inst.destroy();
   l.frame.classList.add('leaving');
   live.delete(id); S.removeWidget(id);
   setTimeout(() => l.frame.remove(), 180);
+  if (!quiet) toast((l.def.label || 'Widget') + ' removed', '', { label: 'Undo', act: 'toast-undo', fn: () => S.undo() });
 }
 
 /** Add a widget of `type` in the emptiest spot near the middle. */
-export function addWidget(type, data) {
+export function addWidget(type, data, at) {
   const def = REGISTRY[type]; const sr = stageRect();
   const pw = Math.min(def.size.w, sr.width * 0.9), ph = Math.min(def.size.h, sr.height * 0.9);
   const fw = pw / sr.width, fh = ph / sr.height;
@@ -156,9 +205,10 @@ export function addWidget(type, data) {
     const score = overlap * 10 + dist * 0.05;
     if (!best || score < best.score - 1e-9) best = { x, y, score };
   }
-  const w = S.newWidget(type, { x: best.x, y: best.y, w: fw, h: fh }, Object.assign(def.defaults(), data || {}));
+  const w = S.newWidget(type, at || { x: best.x, y: best.y, w: fw, h: fh }, Object.assign(def.defaults(), data || {}));
   S.addWidget(w);
   const frame = mount(w);
+  S.rebase();
   frame.classList.add('entering');
   setTimeout(() => frame.classList.remove('entering'), 400);
   select(w.id);

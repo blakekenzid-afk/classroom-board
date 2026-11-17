@@ -1,6 +1,6 @@
 // Clock, Text, Image, Traffic light, Work symbols, Sticker.
-import { h, $, $$, pad, pic, picSrc, icon, ico, segmented, swatches, toggle, section, field, pickFile, resizeImage, toast } from '../util.js';
-import { pickPicture } from '../picker.js';
+import { h, $, $$, pad, pic, picSrc, icon, ico, segmented, swatches, toggle, section, field, pickFile, resizeImage, toast } from '../util.js?v=3';
+import { pickPicture } from '../picker.js?v=3';
 
 // ───────── Clock ─────────
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -104,18 +104,22 @@ export const image = {
   mount(ctx) {
     const d = ctx.data; const root = h('div.im'); ctx.body.append(root);
     async function choose(file) {
-      file = file || await pickFile(); if (!file) return;
+      file = file || await pickFile('image/*,application/pdf,.pdf'); if (!file) return;
+      if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name || '')) {
+        // a PDF gets its own PDF widget (taking this spot if the picture box is still empty)
+        window.dispatchEvent(new CustomEvent('cb:drop-file', { detail: { file, replace: d.src ? null : ctx.w.id } })); return;
+      }
       try { d.src = await resizeImage(file, 1600, { type: 'image/jpeg', quality: 0.85 }); ctx.save(); draw(); }
       catch (e) { toast(e.message, 'err'); }
     }
     function draw() {
       root.innerHTML = ''; root.className = 'im fit-' + d.fit;
       if (d.src) root.append(h('img', { src: d.src, alt: '', draggable: 'false' }));
-      else root.append(h('button.im-empty', { type: 'button', 'data-act': 'upload', onclick: () => choose() }, h('span.im-ico', { html: ico.image }), h('b', { text: 'Add a picture' }), h('small', { text: 'Click to upload, or drop a file here' })));
+      else root.append(h('button.im-empty', { type: 'button', 'data-act': 'upload', onclick: () => choose() }, h('span.im-ico', { html: ico.image }), h('b', { text: 'Add a picture' }), h('small', { text: 'Click to upload, or drop a picture or PDF here' })));
     }
     root.addEventListener('dragover', e => { e.preventDefault(); root.classList.add('drop'); });
     root.addEventListener('dragleave', () => root.classList.remove('drop'));
-    root.addEventListener('drop', e => { e.preventDefault(); root.classList.remove('drop'); const f = e.dataTransfer.files[0]; if (f) choose(f); });
+    root.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); root.classList.remove('drop'); const f = e.dataTransfer.files[0]; if (f) choose(f); });
     draw();
     return {
       settings: panel => {

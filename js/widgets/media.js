@@ -1,5 +1,5 @@
 // Website (embed) and YouTube widgets.
-import { h, $, $$, icon, ico, section, field, toggle, toast } from '../util.js';
+import { h, $, $$, icon, ico, section, field, toggle, toast } from '../util.js?v=3';
 
 // ───────── shared helpers ─────────
 const SVG = {
@@ -118,7 +118,7 @@ const ALLOW = 'autoplay; fullscreen; picture-in-picture; encrypted-media; clipbo
 // ───────── Website (embed) ─────────
 const SUGGEST = [['Wikipedia', 'https://en.m.wikipedia.org/wiki/School_bus'], ['Toy Theater', 'https://toytheater.com/'], ['ClassroomScreen', 'https://classroomscreen.com/']];
 export const embed = {
-  type: 'embed', label: 'Website', icon: 'globe',
+  type: 'embed', label: 'Website', icon: 'globe', transient: ['recent'],
   size: { w: 640, h: 440 }, min: { w: 240, h: 180 },
   defaults: () => ({ url: '', recent: [] }),
   mount(ctx) {
@@ -231,7 +231,7 @@ const ytSearchPage = q => 'https://www.youtube.com/results?search_query=' + enco
 const KID_IDEAS = ['Wheels on the bus', 'Freeze dance', 'Clean up song', 'ABC song', 'Count to 20', 'Brain break'];
 
 export const youtube = {
-  type: 'youtube', label: 'YouTube', icon: 'tv',
+  type: 'youtube', label: 'YouTube', icon: 'tv', transient: ['playing', 'q', 'recent'],
   size: { w: 700, h: 500 }, min: { w: 280, h: 240 },
   defaults: () => ({ q: '', playing: null, recent: [], favs: [] }),
   mount(ctx) {

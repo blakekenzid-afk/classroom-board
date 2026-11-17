@@ -1,7 +1,7 @@
 // Sound level meter, Name picker and Group maker (class list = INITIALS ONLY).
-import { h, $, $$, icon, ico, segmented, swatches, toggle, section, field, clamp, toast } from '../util.js';
-import * as S from '../store.js';
-import { SOUNDS, playSound, audio } from '../audio.js';
+import { h, $, $$, icon, ico, segmented, swatches, toggle, section, field, clamp, toast } from '../util.js?v=3';
+import * as S from '../store.js?v=3';
+import { SOUNDS, playSound, audio } from '../audio.js?v=3';
 
 // ───────── Sound level ─────────
 export const sound = {
@@ -116,7 +116,7 @@ const CHIP_COLORS = ['#5B5BD6', '#2B7DE9', '#0FA3A3', '#2FA55A', '#F08A24', '#E2
 
 // ───────── Name picker ─────────
 export const picker = {
-  type: 'picker', label: 'Name picker', icon: 'dice',
+  type: 'picker', label: 'Name picker', icon: 'magic-wand', transient: ['current', 'used'],
   size: { w: 360, h: 300 }, min: { w: 190, h: 170 },
   defaults: () => ({ current: '', used: [], noRepeat: true, sound: true }),
   mount(ctx) {

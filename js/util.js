@@ -70,11 +70,15 @@ export function pickFile(accept = 'image/*') {
 
 // ── toast ──
 let toastT;
-export function toast(msg, kind = '') {
+/** Little message above the dock. `action` = { label, fn, act } adds a button (e.g. Undo). */
+export function toast(msg, kind = '', action) {
   let t = $('#toast');
   if (!t) { t = h('div', { id: 'toast', role: 'status' }); document.body.append(t); }
-  t.className = 'toast show ' + kind; t.textContent = msg;
-  clearTimeout(toastT); toastT = setTimeout(() => t.className = 'toast ' + kind, 2600);
+  t.className = 'toast show ' + kind + (action ? ' has-act' : ''); t.textContent = '';
+  t.append(h('span', { text: msg }));
+  const hide = () => { t.className = 'toast ' + kind; };
+  if (action) t.append(h('button.toast-act', { type: 'button', text: action.label, 'data-act': action.act || 'toast-action', onclick: () => { hide(); action.fn(); } }));
+  clearTimeout(toastT); toastT = setTimeout(hide, action ? 5000 : 2600);
 }
 
 // ── confirm dialog ──

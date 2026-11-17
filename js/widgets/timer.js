@@ -1,7 +1,7 @@
 // Timer (big digits) and Visual timer (shrinking disc). Shared engine:
 // running state is stored as an absolute endAt, so a reload keeps counting.
-import { h, $, $$, icon, ico, pad, segmented, swatches, section, field, toggle, clamp } from '../util.js';
-import { SOUNDS, playSound } from '../audio.js';
+import { h, $, $$, icon, ico, pad, segmented, swatches, section, field, toggle, clamp } from '../util.js?v=3';
+import { SOUNDS, playSound } from '../audio.js?v=3';
 
 function engine(ctx, onUpdate) {
   const d = ctx.data;
@@ -47,7 +47,7 @@ function soundEditor(d, ctx) {
 }
 
 export const timer = {
-  type: 'timer', label: 'Timer', icon: 'stopwatch',
+  type: 'timer', label: 'Timer', icon: 'stopwatch', transient: ['running', 'endAt', 'left', 'fired'],
   size: { w: 380, h: 260 }, min: { w: 200, h: 150 },
   defaults: () => ({ duration: 5 * 60e3, left: 5 * 60e3, running: false, endAt: 0, sound: 'xylophone', fired: false }),
   mount(ctx) {
@@ -85,7 +85,7 @@ export const timer = {
 const VCOLORS = [['#F25F5C', '#F25F5C', 'Red'], ['#5B5BD6', '#5B5BD6', 'Violet'], ['#2B7DE9', '#2B7DE9', 'Blue'], ['#2FA55A', '#2FA55A', 'Green'], ['#F2A541', '#F2A541', 'Orange'], ['#E2558E', '#E2558E', 'Pink']];
 
 export const vtimer = {
-  type: 'vtimer', label: 'Visual timer', icon: 'hourglass',
+  type: 'vtimer', label: 'Visual timer', icon: 'hourglass', transient: ['running', 'endAt', 'left', 'fired'],
   size: { w: 330, h: 380 }, min: { w: 180, h: 200 },
   defaults: () => ({ duration: 5 * 60e3, left: 5 * 60e3, running: false, endAt: 0, sound: 'chime', fired: false, color: '#F25F5C', showDigits: true, scale: 'auto' }),
   mount(ctx) {

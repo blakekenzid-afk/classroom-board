@@ -37,6 +37,19 @@ const play = {
   bells(c, t) { for (let r = 0; r < 2; r++) [[784, 1], [988, 0.9]].forEach(([f], i) => { const s = t + r * 0.9 + i * 0.42; [1, 2.76, 5.4, 8.93].forEach((m, k) => tone(c, s, f * m, 2.2 / (k + 1), { gain: 0.18 / (k + 1), attack: 0.003 })); }); },
   birds(c, t) { for (let i = 0; i < 6; i++) { const s = t + i * 0.16 + (i > 2 ? 0.35 : 0); tone(c, s, 2400 + (i % 3) * 300, 0.12, { gain: 0.16, glideTo: 4200 + (i % 2) * 400 }); } },
   gong(c, t) { [110, 220.5, 331, 465, 612].forEach((f, k) => tone(c, t, f, 4 - k * 0.5, { gain: 0.28 / (k + 1), attack: 0.02 })); },
+  // dice rattling in a cup: short filtered noise clicks, slowing down
+  rattle(c, t) {
+    const len = Math.floor(c.sampleRate * 0.03), buf = c.createBuffer(1, len, c.sampleRate), ch = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+    let s = t;
+    for (let i = 0; i < 11; i++) {
+      const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+      src.buffer = buf; f.type = 'bandpass'; f.frequency.value = 1800 + Math.random() * 2200; f.Q.value = 2.5;
+      g.gain.value = 0.55 * (1 - i / 14);
+      src.connect(f).connect(g).connect(master(c)); src.start(s);
+      s += 0.045 + i * 0.012 + Math.random() * 0.03;
+    }
+  },
   alarm(c, t) { for (let i = 0; i < 6; i++) tone(c, t + i * 0.22 + Math.floor(i / 2) * 0.25, 880, 0.14, { type: 'square', gain: 0.12, attack: 0.005 }); }
 };
 
