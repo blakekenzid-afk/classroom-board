@@ -48,7 +48,33 @@ Static site – no build step. Open `index.html` through any web server (GitHub 
 - `js/picker.js` – pictogram picker (bundled icons + upload your own, resized in the browser).
 - `js/audio.js` – generated WebAudio chimes (no audio files).
 
+## Shared classroom (sign-in + sync) – free Firebase Spark plan only
+- **Turned on by `js/cloud/config.js`.** While `FIREBASE_CONFIG` is `null` the app shows no sign-in and works on one device as before.
+  The web config is public by design; the data is protected by `firestore.rules` (deploy them to the project) and sign-in.
+- **Sign in** (top bar *Sign in* / class button, Board and Teacher side): Google (pop-up, full-page redirect if a pop-up is blocked) or
+  email + password (create account, forgot password). School Google accounts may be blocked by the district → email works.
+- **Classroom:** after sign-in, *Create a classroom* (name, optional "bring this device's board and plans") or *Join with a code*
+  (6 characters, no 0/O/1/I/L). The class menu shows sync status, members, and for the owner the join code (copy / new code),
+  remove member, rename. Members can leave. Everyone in a class can edit everything.
+- **Data model** (`classrooms/{cid}`): `members/{uid}`, `items/{key}` = one record each (a screen `bd.<id>`, a widget `wg.<id>`,
+  class list `cl`, pictures `pics`, teacher records `t.<array>.<id>`, `t.off.<date>`, `t.att.<date>`) holding canonical JSON,
+  hash and change time; records over ~900 KB are split into `parts`. Files (PDFs, library files, drawings, PDF notes) go in
+  `files` (info) + `fileparts` (≤750 KB pieces); over 10 MB they stay on the device that added them ("Only on this device").
+  `joinCodes/{code}` → classroom; `users/{uid}` → the class this person last used. No Firebase Storage, no Cloud Functions.
+- **Sync** (`js/cloud/sync.js`): the class's data is kept on the device in `classboard.v1@<cid>` / `classboard.teacher.v1@<cid>`
+  (the signed-out keys are never touched), so it opens instantly and works offline; every save is diffed per record against
+  what the class last agreed on, changes are pushed ~1 s later, and live snapshots bring the other person's changes in.
+  Conflicts: last write wins per record. A widget being dragged/typed in, or a Teacher page with a field focused or a window
+  open, waits for the other person's change until it is free. Per-device: the screen being shown, the Teacher tab.
+  Remote changes clear that screen's undo history (undo would revert the other person's edit).
+- **Offline:** Firestore offline cache + the local copy; `sw.js` (network-first app shell, registered only on devices in a class)
+  lets the board reopen without internet. Regenerate it with `tools/mksw.py` after adding files or bumping `?v=`.
+- **Sign out** removes the class's copy from the device (warns if changes have not reached the class) and returns to the
+  device's own board. Removal by the owner does the same on the removed person's device.
+- Tests: `test/cloud.py` (flow / ui / rules) against the Firebase emulators (`firebase.json`); never a real account.
+
+
 Class lists and the student roster are **initials only**.
 
-Cache tags: every CSS/JS URL carries `?v=N` (now `v=4`); bump it everywhere on each release so iPads don't keep old files.
+Cache tags: every CSS/JS URL carries `?v=N` (now `v=5`); bump it everywhere on each release so iPads don't keep old files.
  Pictures: Microsoft Fluent UI Emoji (MIT), bundled in `/icons`.

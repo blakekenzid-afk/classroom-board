@@ -2,9 +2,10 @@
 // notes on top of each page. pdf.js loads from jsDelivr (pinned) only when a
 // PDF widget is used. The file lives in IndexedDB ("<id>:pdf"), notes per page
 // ("<id>:ann:<page>"), so big files never hit the localStorage limit.
-import { h, $, $$, icon, ico, section, toast, pickFile, confirmDialog } from '../util.js?v=4';
-import { blobs } from '../store.js?v=4';
-import { createSketch, sketchToolbar, SKETCH_SVG } from '../sketch.js?v=4';
+import { h, $, $$, icon, ico, section, toast, pickFile, confirmDialog } from '../util.js?v=5';
+import { blobs, env } from '../store.js?v=5';
+import { CLOUD_FILE_MAX } from '../cloud/config.js?v=5';
+import { createSketch, sketchToolbar, SKETCH_SVG } from '../sketch.js?v=5';
 
 const PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/';
 const BIG = 25 * 1024 * 1024, MAX = 250 * 1024 * 1024;
@@ -82,7 +83,7 @@ export const pdf = {
       catch (e) { console.warn(e); return fail('The PDF viewer needs the internet to load. Check the connection and try again.'); }
       try { buf = await blobs.get(id + ':pdf'); } catch (e) { buf = null; }
       if (!alive) return;
-      if (!buf) return fail('This PDF is not saved on this device. Add it again.', true);
+      if (!buf) return fail(env.cloud && d.bytes > CLOUD_FILE_MAX ? 'This PDF is over 10 MB, so it stays on the device that added it.' : 'This PDF is not saved on this device. Add it again.', true);
       try {
         if (doc) { doc.destroy(); doc = null; }
         doc = await lib.getDocument({ data: new Uint8Array(buf.slice(0)), cMapUrl: PDFJS + 'cmaps/', cMapPacked: true, standardFontDataUrl: PDFJS + 'standard_fonts/', isEvalSupported: false, verbosity: 0 }).promise;
@@ -100,6 +101,7 @@ export const pdf = {
 
     function viewer() {
       root.innerHTML = '';
+      if (env.cloud && d.bytes > CLOUD_FILE_MAX) root.append(h('span.only-here.pf-only', { 'data-testid': 'only-here', title: 'Over 10 MB, so it is not copied to your class', text: 'Only on this device' }));
       els.scroll = h('div.pf-scroll');
       els.pageEl = h('div.pf-page');
       els.canvas = h('canvas.pf-cv');

@@ -1,7 +1,7 @@
 // Circle-time calendar: big month, "Today is / Yesterday was / Tomorrow will be",
 // days-of-school counter (skips weekends and days marked off), tap-to-pick
 // weather and the season. Uses the device's own date (Indiana time in class).
-import { h, $, $$, pic, icon, ico, toggle, section, field } from '../util.js?v=4';
+import { h, $, $$, pic, icon, ico, toggle, section, field } from '../util.js?v=5';
 
 export const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];

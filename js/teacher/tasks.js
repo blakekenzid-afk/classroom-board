@@ -1,8 +1,8 @@
 // To-dos (optional due date) and reminders (date + time; an in-app notice
 // pops up when one is due while the board is open).
-import { h, $$, toast, ico } from '../util.js?v=4';
-import * as TS from './tstore.js?v=4';
-import { sv, fl, empty, fmtT, fmtShort, fmtDow } from './ui.js?v=4';
+import { h, $$, toast, ico } from '../util.js?v=5';
+import * as TS from './tstore.js?v=5';
+import { sv, fl, empty, fmtT, fmtShort, fmtDow } from './ui.js?v=5';
 
 const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg>';
 export const nextHour = () => { const d = new Date(Date.now() + 60 * 60000); return String(d.getHours()).padStart(2, '0') + ':00'; };

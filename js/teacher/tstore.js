@@ -12,7 +12,7 @@
 // collection, e.g. users/{uid}/teacher/lessons/{lessonId}.
 // Keyed maps (daysOff, attendance) map to one doc per date.
 // ─────────────────────────────────────────────────────────────
-import { uid, blobs, makeLocalAdapter } from '../store.js?v=4';
+import { uid, blobs, makeLocalAdapter } from '../store.js?v=5';
 
 export const TKEY = 'classboard.teacher.v1';
 export const TSCHEMA = 1;
@@ -22,6 +22,8 @@ let adapter = makeLocalAdapter(TKEY);
 let state = null, saveTimer = null;
 const listeners = new Set();
 export function setTeacherAdapter(a) { adapter = a; }
+/** Apply changes from the shared classroom (fn mutates the state in place). */
+export function remoteUpdateT(fn) { if (!state) return; fn(state); normalize(state); adapter.save(state); emit('remote'); }
 export function T() { return state; }
 export function onT(fn) { listeners.add(fn); return () => listeners.delete(fn); }
 function emit(what) { listeners.forEach(fn => { try { fn(what); } catch (e) { console.error(e); } }); }

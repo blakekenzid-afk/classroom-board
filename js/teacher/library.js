@@ -1,11 +1,12 @@
 // Resource library: links, videos and uploaded files (PDF / pictures, kept in
 // IndexedDB), with folders, labels and search. A PDF opens in the board's PDF
 // widget, a picture in an Image widget, a YouTube link in the YouTube widget.
-import { h, $$, toast, confirmDialog, pickFile, resizeImage, ico } from '../util.js?v=4';
-import { blobs } from '../store.js?v=4';
-import { ytId } from '../widgets/media.js?v=4';
-import * as TS from './tstore.js?v=4';
-import { sv, fl, empty, modal, popMenu, tagInput, fmtShort } from './ui.js?v=4';
+import { h, $$, toast, confirmDialog, pickFile, resizeImage, ico } from '../util.js?v=5';
+import { blobs, env, IDBBlobAdapter } from '../store.js?v=5';
+import { CLOUD_FILE_MAX } from '../cloud/config.js?v=5';
+import { ytId } from '../widgets/media.js?v=5';
+import * as TS from './tstore.js?v=5';
+import { sv, fl, empty, modal, popMenu, tagInput, fmtShort } from './ui.js?v=5';
 
 const mb = n => n >= 1048576 ? (n / 1048576).toFixed(n >= 10485760 ? 0 : 1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
 export const isPdfRes = r => r.kind === 'file' && r.file && /pdf/i.test(r.file.mime || r.file.name);
@@ -98,10 +99,18 @@ export async function editResource(existing, kind = 'link', file = null) {
     body.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('input.input')) { e.preventDefault(); save(); } });
   }, { icon: r.kind === 'video' ? 'tv' : r.kind === 'file' ? 'pdf' : 'globe', cls: 'res-modal' });
 }
+/** In a shared classroom, files over 10 MB stay on the device that added them. */
+function onlyHere(r) {
+  if (!env.cloud || !r.file || (r.file.bytes || 0) <= CLOUD_FILE_MAX) return null;
+  const b = h('span.only-here', { 'data-testid': 'only-here', title: 'Over 10 MB, so it is not copied to your class. It stays on the device that added it.', text: 'Only on this device' });
+  IDBBlobAdapter.get(TS.blobKey(r.id)).then(v => { if (!v) b.textContent = 'On another device'; }).catch(() => {});
+  return [' ', b];
+}
 export function checkFile(f) {
   const ok = /pdf$/i.test(f.type) || /\.pdf$/i.test(f.name) || /^image\//.test(f.type);
   if (!ok) { toast('Please choose a PDF or a picture.', 'err'); return false; }
   if (f.size > TS.FILE_MAX) { toast('That file is ' + mb(f.size) + '. Files up to 25 MB fit in the library.', 'err'); return false; }
+  if (env.cloud && f.size > CLOUD_FILE_MAX) toast('Files over 10 MB stay on this device only – your class will not see this one.');
   return true;
 }
 
@@ -135,7 +144,7 @@ export function resCard(r, app, { compact, onRemove } = {}) {
     thumb,
     h('div.rc-main', null,
       h('b.rc-title', { text: r.title, title: r.title }),
-      h('small.rc-meta', { text: meta.join(' · ') }),
+      h('small.rc-meta', { text: meta.join(' · ') }, onlyHere(r)),
       !compact && (r.folder || r.labels.length) ? h('div.rc-labels', null, r.folder ? h('span.rc-folder', null, sv('folder'), h('span', { text: r.folder })) : null, r.labels.map(l => h('span.rc-label', { text: l }))) : null),
     h('div.rc-acts', null, go, more));
 }

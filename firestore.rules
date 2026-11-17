@@ -1,0 +1,104 @@
+rules_version = '2';
+// Classroom Board – shared classroom data.
+//  • Only signed-in MEMBERS of a classroom can read or write anything inside it.
+//  • A person becomes a member by knowing the classroom's current join code.
+//  • Only the owner can change the code, rename the class or remove members.
+//  • Everything else is denied (no listing classrooms, no other paths).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function classPath(cid) { return /databases/$(database)/documents/classrooms/$(cid); }
+    function memberPath(cid, uid) { return /databases/$(database)/documents/classrooms/$(cid)/members/$(uid); }
+    function codePath(code) { return /databases/$(database)/documents/joinCodes/$(code); }
+    function isMember(cid) { return signedIn() && exists(memberPath(cid, me())); }
+    function isOwner(cid) { return signedIn() && get(classPath(cid)).data.owner == me(); }
+    function okCode(c) { return c is string && c.matches('^[A-Z2-9]{6}$'); }
+    function okName(n) { return n is string && n.size() > 0 && n.size() <= 60; }
+
+    // Each person's own pointer to the classroom they use.
+    match /users/{uid} {
+      allow read, delete: if signedIn() && me() == uid;
+      allow create, update: if signedIn() && me() == uid
+        && request.resource.data.keys().hasOnly(['cid', 'cname', 'updated'])
+        && (request.resource.data.cid == null || request.resource.data.cid is string)
+        && (request.resource.data.cname == null || okName(request.resource.data.cname));
+    }
+
+    // Join codes: get one only by knowing it; never list them.
+    match /joinCodes/{code} {
+      allow get: if signedIn() && okCode(code);
+      allow list, update: if false;
+      allow create: if signedIn() && okCode(code)
+        && request.resource.data.keys().hasOnly(['cid', 'owner', 'created'])
+        && request.resource.data.owner == me()
+        && getAfter(classPath(request.resource.data.cid)).data.owner == me()
+        && getAfter(classPath(request.resource.data.cid)).data.code == code;
+      allow delete: if signedIn() && resource.data.owner == me();
+    }
+
+    match /classrooms/{cid} {
+      allow get: if isMember(cid);
+      allow list, delete: if false;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['name', 'owner', 'code', 'created'])
+        && request.resource.data.owner == me()
+        && okName(request.resource.data.name) && okCode(request.resource.data.code)
+        && getAfter(codePath(request.resource.data.code)).data.cid == cid
+        && existsAfter(memberPath(cid, me()));
+      allow update: if isOwner(cid)
+        && request.resource.data.keys().hasOnly(['name', 'owner', 'code', 'created'])
+        && request.resource.data.owner == resource.data.owner
+        && okName(request.resource.data.name) && okCode(request.resource.data.code)
+        && getAfter(codePath(request.resource.data.code)).data.cid == cid;
+
+      match /members/{uid} {
+        allow read: if isMember(cid);
+        allow update: if false;
+        allow create: if signedIn() && me() == uid
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'email', 'role', 'joined', 'code'])
+          && request.resource.data.uid == uid
+          && (request.resource.data.name is string && request.resource.data.name.size() <= 80)
+          && (request.resource.data.email is string && request.resource.data.email.size() <= 200)
+          && (
+            (request.resource.data.role == 'owner' && getAfter(classPath(cid)).data.owner == me())
+            || (request.resource.data.role == 'member' && okCode(request.resource.data.code)
+                && get(classPath(cid)).data.code == request.resource.data.code)
+          );
+        // the owner removes others; anyone but the owner can leave
+        allow delete: if (isOwner(cid) && uid != me()) || (signedIn() && me() == uid && resource.data.role != 'owner');
+      }
+
+      // Board + teacher records (one doc each, last write wins on `u`).
+      match /items/{key} {
+        allow read: if isMember(cid);
+        allow create, update: if isMember(cid)
+          && request.resource.data.keys().hasOnly(['k', 's', 'j', 'p', 'h', 'u', 'by', 'd'])
+          && request.resource.data.by == me()
+          && request.resource.data.s in ['b', 't']
+          && request.resource.data.u is int;
+        allow delete: if isMember(cid);
+      }
+      match /parts/{part} {
+        allow read, delete: if isMember(cid);
+        allow create, update: if isMember(cid) && request.resource.data.keys().hasOnly(['j']) && request.resource.data.j is string;
+      }
+      // Shared files (PDFs, pictures, drawings, PDF notes), chunked; no Firebase Storage.
+      match /files/{key} {
+        allow read: if isMember(cid);
+        allow create, update: if isMember(cid)
+          && request.resource.data.keys().hasOnly(['k', 'kind', 'n', 'h', 'size', 'u', 'by', 'd', 'big', 'mime'])
+          && request.resource.data.by == me()
+          && request.resource.data.u is int
+          && request.resource.data.size is int
+          && (request.resource.data.get('big', false) == true || request.resource.data.size <= 10485760);
+        allow delete: if isMember(cid);
+      }
+      match /fileparts/{part} {
+        allow read, delete: if isMember(cid);
+        allow create, update: if isMember(cid) && request.resource.data.keys().hasOnly(['b', 'j'])
+          && (request.resource.data.get('b', null) is bytes || request.resource.data.get('j', null) is string);
+      }
+    }
+  }
+}

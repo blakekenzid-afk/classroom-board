@@ -1,0 +1,9 @@
+{
+  "indexes": [],
+  "fieldOverrides": [
+    { "collectionGroup": "items", "fieldPath": "j", "indexes": [] },
+    { "collectionGroup": "parts", "fieldPath": "j", "indexes": [] },
+    { "collectionGroup": "fileparts", "fieldPath": "b", "indexes": [] },
+    { "collectionGroup": "fileparts", "fieldPath": "j", "indexes": [] }
+  ]
+}

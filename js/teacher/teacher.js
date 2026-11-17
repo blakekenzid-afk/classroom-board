@@ -1,17 +1,17 @@
 // Teacher side: a separate full-screen view reached from the Board | Teacher
 // switch in the top bar. Pages: Today, Planner, Lessons, Library, To-dos,
 // Students. The board keeps running underneath (timers keep ticking).
-import { h, $, $$, toast, confirmDialog, pickFile, picSrc } from '../util.js?v=4';
-import { playSound } from '../audio.js?v=4';
-import * as TS from './tstore.js?v=4';
-import { activeBoard } from '../store.js?v=4';
-import { sv, fl, download, fmtT, fmtShort, closePop } from './ui.js?v=4';
-import { renderToday } from './today.js?v=4';
-import { renderPlanner } from './planner.js?v=4';
-import { renderLessons } from './lessons.js?v=4';
-import { renderLibrary } from './library.js?v=4';
-import { renderTasks } from './tasks.js?v=4';
-import { renderStudents } from './students.js?v=4';
+import { h, $, $$, toast, confirmDialog, pickFile, picSrc } from '../util.js?v=5';
+import { playSound } from '../audio.js?v=5';
+import * as TS from './tstore.js?v=5';
+import { activeBoard } from '../store.js?v=5';
+import { sv, fl, download, fmtT, fmtShort, closePop } from './ui.js?v=5';
+import { renderToday } from './today.js?v=5';
+import { renderPlanner } from './planner.js?v=5';
+import { renderLessons } from './lessons.js?v=5';
+import { renderLibrary } from './library.js?v=5';
+import { renderTasks } from './tasks.js?v=5';
+import { renderStudents } from './students.js?v=5';
 
 export const TABS = [
   ['today', 'Today', 'calendar-day', renderToday],
@@ -40,7 +40,8 @@ export function initTeacher(boardApi) {
   nav = h('nav.dock.tnav', { 'aria-label': 'Teacher pages' }, h('div.dock-inner', null, TABS.map(([k, label, icon]) =>
     h('button.dock-item.tnav-item', { type: 'button', 'data-tab': k, title: label, onclick: () => go(k) },
       h('span.dk-ico', null, h('img', { src: picSrc(icon), alt: '', draggable: 'false' })), h('span.dk-lbl', { text: label })))));
-  trPill = h('div.chrome.tr-pill.t-tr', null,
+  const acct = boardApi.accountButton ? boardApi.accountButton() : null;
+  trPill = h('div.chrome.tr-pill.t-tr', null, acct, acct ? h('span.chrome-sep.acct-sep') : null,
     h('button.chrome-btn', { type: 'button', title: 'Download a backup of all teacher data', 'data-act': 't-backup', onclick: backup }, sv('download'), h('span.lbl', { text: 'Back up' })),
     h('button.chrome-btn', { type: 'button', title: 'Restore from a backup file', 'data-act': 't-restore', onclick: restore }, sv('upload'), h('span.lbl', { text: 'Restore' })));
   const notices = h('div.t-notices', { id: 'tNotices', 'aria-live': 'polite' });
@@ -114,7 +115,24 @@ function checkReminders() {
   });
   if (rang) try { playSound('chime'); } catch (e) { }
 }
-TS.onT(w => { if (w === 'reminders') setTimeout(checkReminders, 0); });
+TS.onT(w => { if (w === 'reminders' || w === 'remote') setTimeout(checkReminders, 0); if (w === 'remote') refreshSoon(); });
+
+// A change from someone else in the shared classroom: redraw the open page,
+// but never while this person is typing, dragging or has a window open.
+let refreshT = 0;
+const tBusy = () => {
+  const a = document.activeElement;
+  return !!((a && a !== document.body && a.closest('#teacher, .modal-back') && a.matches('input, textarea, select, [contenteditable="true"], [contenteditable=""]'))
+    || document.querySelector('.modal-back, .t-pop, .t-ghost') || document.body.classList.contains('t-is-dragging'));
+};
+function refreshSoon() {
+  clearTimeout(refreshT);
+  refreshT = setTimeout(() => {
+    if (!document.body.classList.contains('teacher-mode') || !current) return;
+    if (tBusy()) { refreshSoon(); return; }
+    const top = page.scrollTop; refresh(); page.scrollTop = top;
+  }, 350);
+}
 
 // ── backup / restore ──
 async function backup() {

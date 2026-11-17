@@ -1,10 +1,10 @@
 // Lessons: list with search + tag filter, and a rich-text lesson editor
 // (bold / italic / underline / headings / lists), objectives, materials and
 // attached library resources. Lessons can be duplicated and put on the planner.
-import { h, $, $$, toast, confirmDialog } from '../util.js?v=4';
-import * as TS from './tstore.js?v=4';
-import { sv, fl, empty, modal, tagInput, tint, cleanHtml, tidyHtml, htmlText, fmtShort, fmtLong, fmtRange, fmtDow } from './ui.js?v=4';
-import { resCard, editResource, resIcon } from './library.js?v=4';
+import { h, $, $$, toast, confirmDialog } from '../util.js?v=5';
+import * as TS from './tstore.js?v=5';
+import { sv, fl, empty, modal, tagInput, tint, cleanHtml, tidyHtml, htmlText, fmtShort, fmtLong, fmtRange, fmtDow } from './ui.js?v=5';
+import { resCard, editResource, resIcon } from './library.js?v=5';
 
 /** Choose a day + block for a lesson. Resolves {date, blockId} or undefined. */
 export function pickSlot(lessonTitle, start) {

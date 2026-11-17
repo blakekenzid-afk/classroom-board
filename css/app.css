@@ -720,7 +720,7 @@ img { -webkit-touch-callout: none; -webkit-user-drag: none; }
 .cal.wide .cal-dow { font-size: 3.5em; }
 .cal-date { font-weight: 800; color: var(--ink2); font-size: 1.35em; }
 .cal-sent { display: flex; flex-direction: column; gap: .1em; background: #FAFAFD; border: 2px solid #EFEFF6; border-radius: .9em; padding: .45em .8em; }
-.cal-s { font-weight: 750; color: var(--ink2); font-size: 1.15em; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-s { font-weight: 750; color: var(--ink2); font-size: 1.15em; line-height: 1.25; overflow-wrap: anywhere; }
 .cal-s b { color: var(--dc); font-weight: 900; }
 .cal-s.now { color: var(--ink); font-size: 1.32em; }
 .cal-cards { display: flex; flex-wrap: wrap; gap: .5em; }

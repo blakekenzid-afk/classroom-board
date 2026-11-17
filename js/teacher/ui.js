@@ -1,6 +1,6 @@
 // Small UI pieces shared by the teacher pages.
-import { h, $$, ico, picSrc } from '../util.js?v=4';
-import { parseYmd } from './tstore.js?v=4';
+import { h, $$, ico, picSrc } from '../util.js?v=5';
+import { parseYmd } from './tstore.js?v=5';
 
 export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 export const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

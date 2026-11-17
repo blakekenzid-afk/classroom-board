@@ -37,10 +37,31 @@ let saveTimer = null;
 const listeners = new Set();
 
 export function setAdapter(a) { adapter = a; }
+export const getAdapter = () => adapter;
+/** Set by the shared-classroom module: env.cloud = this device is showing a shared classroom. */
+export const env = { cloud: false };
+/**
+ * Apply changes that came from the shared classroom. fn(state) mutates the
+ * state and returns the ids of boards it touched. No undo step is made; the
+ * touched screens lose their undo history (it would undo the other person's edit).
+ */
+export function remoteUpdate(fn) {
+  if (!state) return;
+  const info = fn(state) || {};
+  const boards = info.boards || new Set();
+  boards.forEach(id => hist.delete(id));
+  if (!state.boards.length) state.boards.push(newBoard('My classroom'));
+  info.activeGone = !state.boards.find(b => b.id === state.activeBoardId);
+  if (info.activeGone) state.activeBoardId = state.boards[0].id;
+  adapter.save(state);
+  if (boards.has(state.activeBoardId) || info.activeGone) record();
+  emit('remote', info);
+  if (info.classList) emit('classlist');
+}
 export function getState() { return state; }
 export function onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); }
 
-function emit(reason) { listeners.forEach(fn => fn(reason)); }
+function emit(reason, info) { listeners.forEach(fn => fn(reason, info)); }
 
 /** Board JSON shape */
 export function newBoard(name = 'New screen') {
@@ -257,10 +278,17 @@ export const blobs = {
   /** Remove blobs whose widget no longer exists on any screen (run at start-up). */
   async gc() {
     try {
+      // widgets of every board set kept on this device (this device's own + any shared classroom)
       const ids = new Set(state.boards.flatMap(b => b.widgets.map(w => w.id)));
-      for (const k of await blobs.keys()) {
+      for (let i = 0; i < localStorage.length; i++) {
+        const lk = localStorage.key(i); if (!lk || !lk.startsWith(KEY)) continue;
+        try { (JSON.parse(localStorage.getItem(lk)).boards || []).forEach(b => (b.widgets || []).forEach(w => ids.add(w.id))); } catch (e) { }
+      }
+      const a = blobAdapter;
+      const ks = a.localKeys ? await a.localKeys() : await blobs.keys();
+      for (const k of ks) {
         if (String(k).startsWith('teacher/')) continue; // teacher library files are not widget blobs
-        const id = String(k).split(':')[0]; if (!ids.has(id)) await blobs.del(k);
+        const id = String(k).split(':')[0]; if (!ids.has(id)) await (a.evict ? a.evict(k) : blobs.del(k));
       }
     } catch (e) { console.warn('blob gc skipped', e); }
   }

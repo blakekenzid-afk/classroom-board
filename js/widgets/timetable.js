@@ -1,8 +1,8 @@
 // ⭐ Timetable / Schedule — Timed schedule, List, Checklist.
-import { h, $, $$, pic, icon, ico, fmtTime, minsOf, hhmmOf, segmented, toggle, swatches, field, section, makeSortable, clamp } from '../util.js?v=4';
-import { uid } from '../store.js?v=4';
-import { pickPicture } from '../picker.js?v=4';
-import { SOUNDS, playSound } from '../audio.js?v=4';
+import { h, $, $$, pic, icon, ico, fmtTime, minsOf, hhmmOf, segmented, toggle, swatches, field, section, makeSortable, clamp } from '../util.js?v=5';
+import { uid } from '../store.js?v=5';
+import { pickPicture } from '../picker.js?v=5';
+import { SOUNDS, playSound } from '../audio.js?v=5';
 
 export const THEMES = [
   ['violet', '#5B5BD6', 'Violet', '#EEEEFD'], ['blue', '#2B7DE9', 'Blue', '#E6F0FD'], ['teal', '#0FA3A3', 'Teal', '#DFF5F5'],

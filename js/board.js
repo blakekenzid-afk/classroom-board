@@ -1,9 +1,9 @@
 // Board ("screen") rendering: free-floating widget frames with drag,
 // resize, z-order, close and settings. Frames are stored as FRACTIONS of
 // the stage, rendered as CSS percentages, so a board scales to any screen.
-import * as S from './store.js?v=4';
-import { h, $, $$, clamp, icon, ico, picSrc, toast } from './util.js?v=4';
-import { REGISTRY } from './widgets/index.js?v=4';
+import * as S from './store.js?v=5';
+import { h, $, $$, clamp, icon, ico, picSrc, toast } from './util.js?v=5';
+import { REGISTRY } from './widgets/index.js?v=5';
 
 let stage, live = new Map(); // widgetId -> {frame, inst, def}
 let sheet = null, sheetFor = null;
@@ -74,6 +74,41 @@ export function syncBoard() {
   });
   S.rebase();
 }
+
+/**
+ * After a change from someone else in the shared classroom: remount only the
+ * widgets whose data changed, move the ones whose frame changed, keep the rest
+ * (and keep this person's open settings sheet unless its widget changed).
+ */
+export function syncRemote() {
+  const b = S.activeBoard(); const ids = new Set(b.widgets.map(w => w.id));
+  if (sheetFor && !ids.has(sheetFor)) closeSettings(true);
+  live.forEach((l, id) => { if (!ids.has(id)) { l.inst.destroy && l.inst.destroy(); l.frame.remove(); live.delete(id); } });
+  b.widgets.forEach((w, i) => {
+    const l = live.get(w.id);
+    if (!l) { const f = mount(w); f.classList.add('entering'); setTimeout(() => f.classList.remove('entering'), 400); return; }
+    if (l.ctx.w === w) return;
+    if (l.ctx.w.type === w.type && JSON.stringify(l.ctx.w.data) === JSON.stringify(w.data)) {
+      const keep = l.ctx.w; ['x', 'y', 'w', 'h', 'z'].forEach(k => keep[k] = w[k]); b.widgets[i] = keep;
+      applyFrame(l.frame, keep); l.inst.resize && l.inst.resize();
+    } else {
+      if (sheetFor === w.id) closeSettings(true);
+      l.inst.destroy && l.inst.destroy(); const old = l.frame; live.delete(w.id);
+      const f = mount(w); old.replaceWith(f);
+    }
+  });
+  S.rebase();
+}
+/** A shared file (drawing, PDF, PDF notes) changed on another device: show the new one. */
+function remountWidget(id, tries = 0) {
+  const l = live.get(id); if (!l) return;
+  const a = document.activeElement;
+  if ((l.frame.matches('.dragging, .resizing, .editing, :active') || (a && a !== document.body && l.frame.contains(a))) && tries < 40) { setTimeout(() => remountWidget(id, tries + 1), 1500); return; }
+  l.inst.destroy && l.inst.destroy(); live.delete(id);
+  const f = mount(l.ctx.w); l.frame.replaceWith(f);
+}
+window.addEventListener('cb:blob-remote', e => { const id = String(e.detail.key).split(':')[0]; clearTimeout(remountT[id]); remountT[id] = setTimeout(() => remountWidget(id), 250); });
+const remountT = {};
 
 function stageRect() { return stage.getBoundingClientRect(); }
 

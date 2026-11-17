@@ -1,10 +1,12 @@
-import * as S from './store.js?v=4';
-import { h, $, $$, icon, ico, picSrc, toast, confirmDialog, pickFile, resizeImage, swatches } from './util.js?v=4';
-import { initBoard, renderBoard, syncBoard, addWidget, closeSettings, liveWidgets, dropFile } from './board.js?v=4';
-import { initTeacher, setMode } from './teacher/teacher.js?v=4';
-import { REGISTRY, DOCK } from './widgets/index.js?v=4';
-import { pickPicture } from './picker.js?v=4';
-import { uid } from './store.js?v=4';
+import * as S from './store.js?v=5';
+import { h, $, $$, icon, ico, picSrc, toast, confirmDialog, pickFile, resizeImage, swatches } from './util.js?v=5';
+import { initBoard, renderBoard, syncBoard, syncRemote, addWidget, closeSettings, liveWidgets, dropFile } from './board.js?v=5';
+import { initTeacher, setMode } from './teacher/teacher.js?v=5';
+import { REGISTRY, DOCK } from './widgets/index.js?v=5';
+import { pickPicture } from './picker.js?v=5';
+import { uid } from './store.js?v=5';
+import * as C from './cloud/cloud.js?v=5';
+import { loadingUI, accountButton, maybeOpenSignIn } from './cloud/ui.js?v=5';
 
 // ── backgrounds ──
 export const BGS = {
@@ -72,7 +74,8 @@ function buildChrome() {
   const fsBtn = h('button.chrome-btn', { type: 'button', title: 'Present (full screen)', 'data-act': 'present' }, icon('expand'), h('span.lbl', { text: 'Present' }));
   const undoBtn = h('button.chrome-btn.hist', { type: 'button', title: 'Undo (Ctrl+Z)', 'aria-label': 'Undo', 'data-act': 'undo', html: UNDO_SVG, disabled: true, onclick: () => { S.undo(); } });
   const redoBtn = h('button.chrome-btn.hist', { type: 'button', title: 'Redo (Ctrl+Shift+Z)', 'aria-label': 'Redo', 'data-act': 'redo', html: REDO_SVG, disabled: true, onclick: () => { S.redo(); } });
-  const tr = h('div.chrome.tr-pill', null, undoBtn, redoBtn, h('span.chrome-sep'), bgBtn, fsBtn);
+  const acct = C.cloud.cfg ? accountButton() : null;
+  const tr = h('div.chrome.tr-pill', null, acct, acct ? h('span.chrome-sep.acct-sep') : null, undoBtn, redoBtn, h('span.chrome-sep'), bgBtn, fsBtn);
   bgBtn.onclick = e => { e.stopPropagation(); toggleMenu(bgMenu, bgBtn); };
   fsBtn.onclick = togglePresent;
 
@@ -222,16 +225,23 @@ const UNDO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 const REDO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>';
 
 // ── boot ──
+// In a shared classroom the class's data is picked (and, the first time on a device, fetched) before loading.
+await C.prepare(loadingUI);
 S.load(seed);
 const { stage, undoBtn, redoBtn } = buildChrome();
 initBoard(stage);
 applyBg(); renderBoard();
 const syncHist = () => { undoBtn.disabled = !S.canUndo(); redoBtn.disabled = !S.canRedo(); };
-S.onChange(reason => {
+S.onChange((reason, info) => {
   if (reason === 'board') { applyBg(); renderBoard(); }
   else if (reason === 'bg' || reason === 'rename') applyBg();
   else if (reason === 'history-apply') { applyBg(); syncBoard(); }
-  if (reason === 'history' || reason === 'board') syncHist();
+  else if (reason === 'remote') { // a change from someone else in the class
+    if (info && info.activeGone) { applyBg(); renderBoard(); }
+    else if (info && info.boards && info.boards.has(S.getState().activeBoardId)) { applyBg(); syncRemote(); }
+    else applyBg();
+  }
+  if (reason === 'history' || reason === 'board' || reason === 'remote') syncHist();
 });
 syncHist();
 setInterval(syncHist, 400); // debounced saves become undo steps a moment later
@@ -252,5 +262,7 @@ setTimeout(() => S.blobs.gc(), 4000);
 window.addEventListener('cb:save-error', () => toast('Storage is full – try a smaller picture.', 'err'));
 // Class list is shared: refresh every widget that shows it.
 S.onChange(r => { if (r === 'classlist') liveWidgets().forEach(l => l.inst.onClassList && l.inst.onClassList()); });
-initTeacher({ addWidget, dropFile });
-window.CB = { S, addWidget, renderBoard };
+initTeacher({ addWidget, dropFile, accountButton: C.cloud.cfg ? accountButton : null });
+window.CB = { S, addWidget, renderBoard, cloud: C };
+C.start().catch(e => console.warn('cloud start', e));
+maybeOpenSignIn();
